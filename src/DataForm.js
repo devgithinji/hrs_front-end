@@ -1,4 +1,4 @@
-import React, {useEffect, useState} from 'react';
+import React, {useState} from 'react';
 import axios from "axios";
 
 const patientData = {
@@ -25,12 +25,15 @@ const DataForm = () => {
     const [patientErrors, setPatientErrors] = useState(patientData)
 
     const [nextOfKinErrors, setNextOfKinErrors] = useState(nextOfKinData)
+    const [message, setMessage] = useState({
+        name: '',
+        refNo: '',
+        message: ''
+    })
 
+    const [error, setError] = useState('')
 
-    useEffect(() => {
-        console.log('use')
-        console.log(patientErrors)
-    }, [patientErrors]);
+    const [isLoading, setIsLoading] = useState(false)
 
 
     const handlePatientChange = (event) => {
@@ -45,38 +48,50 @@ const DataForm = () => {
     }
 
 
-    const validateForm = () => {
-            console.log('in loop')
-            for (const key in patient) {
-                console.log(key)
-                const value = patient[key];
-                if (!value.trim()) {
-                    setPatientErrors({...patientErrors, [key]: `${key} is required`})
-                    return;
-                } else {
-                    console.log(patientErrors)
-                    setPatientErrors(prevState => ({...prevState, [key]: ''}))
-                    console.log('done')
-                    console.log(patientErrors)
-                }
-            }
+    const isEmailValid = (email) => {
+        const emailPattern = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+        return !!email.match(emailPattern);
+    }
 
-            
-            for (const key in nextOfKin) {
+    const validateForm = () => {
+            let isValid = true;
+            const newPatientErrors = {};
+            for (const key in patient) {
                 const value = patient[key];
                 if (!value.trim()) {
-                    setNextOfKinErrors({...nextOfKinErrors, [key]: `${key} is required`})
-                    return;
+                    newPatientErrors[key] = `${key} is required`;
+                    isValid = false;
+                } else if (key === 'email' && !isEmailValid(value)) {
+                    newPatientErrors[key] = `invalid ${key}`;
+                    isValid = false;
+
                 } else {
-                    setNextOfKinErrors({...nextOfKinErrors, [key]: ''})
+                    newPatientErrors[key] = '';
                 }
             }
+            setPatientErrors(newPatientErrors)
+
+            const newNextOfKinErrors = {};
+            for (const key in nextOfKin) {
+                const value = nextOfKin[key];
+                if (!value.trim()) {
+                    newNextOfKinErrors[key] = `${key} is required`;
+                    isValid = false;
+                } else {
+                    newNextOfKinErrors[key] = '';
+                }
+            }
+            setNextOfKinErrors(newNextOfKinErrors)
+
+            return isValid;
         }
     ;
 
     const submit = async (e) => {
         e.preventDefault();
-        validateForm();
+        const isValid = validateForm();
+
+        if (!isValid) return;
 
         const data = {
             patientData: patient,
@@ -85,15 +100,24 @@ const DataForm = () => {
 
         try {
             const response = await axios.post("http://localhost:8082/patient", data)
-            console.log(response)
+            if (response.status == 200) {
+                setMessage(response.data)
+                setIsLoading(false);
+                setPatient(patientData)
+                setNextOfKin(nextOfKinData)
+                setPatientErrors(patientData)
+                setNextOfKinErrors(nextOfKinData)
+            }
         } catch (e) {
-            console.log('error', e)
+            setError(e.response.data.error)
         }
     }
 
 
     return (<div className="form-container">
         <h2>Patient</h2>
+        {error && <div>{error}</div>}
+        {message.name && <div>User created name {message.name} refNo: {message.refNo} message {message.message}</div>}
         <div className="input-container">
             <div className="input">
                 <div className="form-input">
