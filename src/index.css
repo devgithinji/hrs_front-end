@@ -131,6 +131,22 @@ input:focus, input:active {
     max-width: 300px;
 }
 
+.message{
+    min-width: 300px;
+    padding-block: 10px;
+    color: white;
+    border-radius: 10px;
+    font-weight: bold;
+}
+
+.error-message{
+    background: red;
+}
+
+.success-message{
+    background: green;
+}
+
 /*responsive*/
 @media screen and (min-width: 768px) {
     .input-container {

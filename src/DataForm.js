@@ -1,4 +1,4 @@
-import React, {useState} from 'react';
+import React, {useEffect, useState} from 'react';
 import axios from "axios";
 
 const patientData = {
@@ -17,6 +17,12 @@ const patientData = {
 const nextOfKinData = {
     name: '', dateOfBirth: '', idNo: '', telephone: '', relationship: '', gender: '',
 };
+
+const messageData = {
+    name: '',
+    refNo: '',
+    message: ''
+}
 const DataForm = () => {
     const [patient, setPatient] = useState(patientData)
 
@@ -25,15 +31,29 @@ const DataForm = () => {
     const [patientErrors, setPatientErrors] = useState(patientData)
 
     const [nextOfKinErrors, setNextOfKinErrors] = useState(nextOfKinData)
-    const [message, setMessage] = useState({
-        name: '',
-        refNo: '',
-        message: ''
-    })
+    const [message, setMessage] = useState(messageData)
 
     const [error, setError] = useState('')
 
     const [isLoading, setIsLoading] = useState(false)
+
+
+    useEffect(() => {
+        const errorTimeOut = setTimeout(() => {
+            setError('')
+        }, 2000)
+
+
+        const messageTimeOut = setTimeout(() => {
+            setMessage(messageData)
+        }, 2000)
+
+
+        return () => {
+            clearTimeout(errorTimeOut);
+            clearTimeout(messageTimeOut);
+        }
+    }, []);
 
 
     const handlePatientChange = (event) => {
@@ -99,25 +119,62 @@ const DataForm = () => {
         }
 
         try {
-            const response = await axios.post("http://localhost:8082/patient", data)
-            if (response.status == 200) {
+            setIsLoading(true)
+            const response = await axios.post(process.env.REACT_APP_API_URL, data)
+            if (response.status === 200) {
                 setMessage(response.data)
-                setIsLoading(false);
-                setPatient(patientData)
-                setNextOfKin(nextOfKinData)
-                setPatientErrors(patientData)
-                setNextOfKinErrors(nextOfKinData)
+                resetForm()
             }
         } catch (e) {
-            setError(e.response.data.error)
+            if (axios.isAxiosError(e)) {
+                const {data, status} = e.response;
+
+                if (status === 422) {
+                    for (const key in data.errors) {
+                        const [personType, fieldName] = key.split(".");
+
+                        if (personType === 'patientData') {
+                            setPatientErrors(prevState => ({...prevState, [fieldName]: data.errors[key]}))
+                        } else {
+                            setNextOfKinErrors(prevState => ({...prevState, [fieldName]: data.errors[key]}))
+                        }
+                    }
+                } else {
+                    setError(data.error)
+                }
+
+            } else {
+                setError(e.message)
+            }
+
+
+            setIsLoading(false)
         }
     }
 
 
+    const resetForm = () => {
+        setIsLoading(false);
+        setPatient(patientData)
+        setNextOfKin(nextOfKinData)
+        setPatientErrors(patientData)
+        setNextOfKinErrors(nextOfKinData)
+    }
+
+    const today = new Date().toISOString().split('T')[0];
+
+
     return (<div className="form-container">
         <h2>Patient</h2>
-        {error && <div>{error}</div>}
-        {message.name && <div>User created name {message.name} refNo: {message.refNo} message {message.message}</div>}
+        {error && <div className="message error-message">{error}</div>}
+        {message.name && (
+            <div className="message success-message">
+                <p>Success</p>
+                <p>{message.name}</p>
+                <p>RefNo: {message.refNo}</p>
+                <p>{message.message}</p>
+            </div>
+        )}
         <div className="input-container">
             <div className="input">
                 <div className="form-input">
@@ -135,6 +192,7 @@ const DataForm = () => {
                     <input placeholder="date of birth"
                            type="date" name="dateOfBirth"
                            value={patient.dateOfBirth}
+                           max={today}
                            onChange={handlePatientChange}/>
                 </div>
                 {patientErrors.dateOfBirth && <div className="error">{patientErrors.dateOfBirth}</div>}
@@ -144,6 +202,7 @@ const DataForm = () => {
                     <label>Id NO</label>
                     <input placeholder="id no"
                            name="idNo"
+                           type="number"
                            value={patient.idNo}
                            onChange={handlePatientChange}/>
                 </div>
@@ -185,6 +244,7 @@ const DataForm = () => {
                     <label>Telephone</label>
                     <input placeholder="telephone"
                            name="telephone"
+                           type="number"
                            value={patient.telephone}
                            onChange={handlePatientChange}/>
                 </div>
@@ -206,6 +266,7 @@ const DataForm = () => {
                 <div className="form-input">
                     <label>Gender</label>
                     <select value={patient.gender} name="gender" onChange={handlePatientChange}>
+                        <option disabled value="">Select gender</option>
                         <option value="male">male</option>
                         <option value="female">female</option>
                     </select>
@@ -216,6 +277,7 @@ const DataForm = () => {
                 <div className="form-input">
                     <label>Marital Status</label>
                     <select value={patient.maritalStatus} name="maritalStatus" onChange={handlePatientChange}>
+                        <option disabled value="">Select marital status</option>
                         <option value="single">single</option>
                         <option value="married">married</option>
                     </select>
@@ -242,6 +304,7 @@ const DataForm = () => {
                            type="date"
                            name="dateOfBirth"
                            value={nextOfKin.dateOfBirth}
+                           max={today}
                            onChange={handleNextOfKinChange}/>
                 </div>
                 {nextOfKinErrors.dateOfBirth && <div className="error">{nextOfKinErrors.dateOfBirth}</div>}
@@ -251,6 +314,7 @@ const DataForm = () => {
                     <label>Id NO</label>
                     <input placeholder="id no"
                            name="idNo"
+                           type="number"
                            value={nextOfKin.idNo}
                            onChange={handleNextOfKinChange}/>
                 </div>
@@ -260,6 +324,7 @@ const DataForm = () => {
                 <div className="form-input">
                     <label>Gender</label>
                     <select name="gender" value={nextOfKin.gender} onChange={handleNextOfKinChange}>
+                        <option disabled value="">Select gender</option>
                         <option value="male">male</option>
                         <option value="female">female</option>
                     </select>
@@ -280,6 +345,7 @@ const DataForm = () => {
                 <div className="form-input">
                     <label>Telephone</label>
                     <input placeholder="telephone"
+                           type="number"
                            name="telephone"
                            value={nextOfKin.telephone}
                            onChange={handleNextOfKinChange}/>
@@ -287,7 +353,8 @@ const DataForm = () => {
                 {nextOfKinErrors.telephone && <div className="error">{nextOfKinErrors.telephone}</div>}
             </div>
         </div>
-        <button className="register-btn" onClick={submit}>Register</button>
+        <button className="register-btn" onClick={submit}
+                disabled={isLoading}>{isLoading ? 'PLease wait ...' : 'Register'}</button>
     </div>);
 };
 
