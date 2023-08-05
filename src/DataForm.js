@@ -353,7 +353,7 @@ const DataForm = () => {
             </div>
         </div>
         <button className="register-btn" onClick={submit}
-                disabled={isLoading}>{isLoading ? 'PLease wait ...' : 'Register'}</button>
+                disabled={isLoading}>{isLoading ? 'Please wait ...' : 'Register'}</button>
     </div>);
 };
 
