@@ -100,7 +100,7 @@ input:focus, input:active {
 
 .form-input {
     display: flex;
-    justify-content: space-between;
+    gap: 10px;
     align-items: center;
     border-radius: 5px;
     padding-block: 5px;
@@ -113,11 +113,12 @@ input:focus, input:active {
     padding: 10px;
     border: none;
     background: none;
-    width: 150px;
+    flex: 1;
 }
 
 .form-input label {
     text-align: left;
+    width: max-content;
 }
 
 .register-btn {
@@ -131,7 +132,7 @@ input:focus, input:active {
     max-width: 300px;
 }
 
-.message{
+.message {
     min-width: 300px;
     padding-block: 10px;
     color: white;
@@ -139,11 +140,11 @@ input:focus, input:active {
     font-weight: bold;
 }
 
-.error-message{
+.error-message {
     background: red;
 }
 
-.success-message{
+.success-message {
     background: green;
 }
 
