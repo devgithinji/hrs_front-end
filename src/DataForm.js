@@ -126,9 +126,10 @@ const DataForm = () => {
                 resetForm()
             }
         } catch (e) {
-            if (axios.isAxiosError(e)) {
-                const {data, status} = e.response;
 
+
+            if (e.response) {
+                const {data, status} = e.response;
                 if (status === 422) {
                     for (const key in data.errors) {
                         const [personType, fieldName] = key.split(".");
@@ -142,11 +143,9 @@ const DataForm = () => {
                 } else {
                     setError(data.error)
                 }
-
             } else {
                 setError(e.message)
             }
-
 
             setIsLoading(false)
         }
