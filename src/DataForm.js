@@ -53,7 +53,7 @@ const DataForm = () => {
             clearTimeout(errorTimeOut);
             clearTimeout(messageTimeOut);
         }
-    }, []);
+    }, [error, message]);
 
 
     const handlePatientChange = (event) => {
