@@ -120,7 +120,7 @@ const DataForm = () => {
 
         try {
             setIsLoading(true)
-            const response = await axios.post(process.env.REACT_APP_API_URL, data)
+            const response = await axios.post(`${process.env.REACT_APP_API_URL}/patient`, data)
             if (response.status === 200) {
                 setMessage(response.data)
                 resetForm()
